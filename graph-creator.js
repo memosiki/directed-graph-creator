@@ -1,21 +1,13 @@
 document.onload = (function(d3, saveAs, Blob, undefined){
   "use strict";
-
-  // TODO add user settings
-  var consts = {
-    defaultTitle: "random variable"
-  };
-  var settings = {
-    appendElSpec: "#graph"
-  };
   // define graphcreator object
   var GraphCreator = function(svg, nodes, edges){
     var thisGraph = this;
         thisGraph.idct = 0;
-
+    
     thisGraph.nodes = nodes || [];
     thisGraph.edges = edges || [];
-
+    
     thisGraph.state = {
       selectedNode: null,
       selectedEdge: null,
@@ -24,7 +16,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       justDragged: false,
       justScaleTransGraph: false,
       lastKeyDown: -1,
-      shiftNodeDrag: false,
+      shiftNodeDrag: false,	
       selectedText: null
     };
 
@@ -33,7 +25,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     defs.append('svg:marker')
       .attr('id', 'end-arrow')
       .attr('viewBox', '0 -5 10 10')
-      .attr('refX', "32")
+      .attr('refX', "30")
       .attr('markerWidth', 3.5)
       .attr('markerHeight', 3.5)
       .attr('orient', 'auto')
@@ -62,7 +54,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           .attr('d', 'M0,0L0,0')
           .style('marker-end', 'url(#mark-end-arrow)');
 
-    // svg nodes and edges
+    // svg nodes and edges 
     thisGraph.paths = svgG.append("g").selectAll("g");
     thisGraph.circles = svgG.append("g").selectAll("g");
 
@@ -90,7 +82,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     // listen for dragging
     var dragSvg = d3.behavior.zoom()
+
           .on("zoom", function(){
+
             if (d3.event.sourceEvent.shiftKey){
               // TODO  the internal d3 state is still changing
               return false;
@@ -109,7 +103,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           .on("zoomend", function(){
             d3.select('body').style("cursor", "auto");
           });
-
+    
     svg.call(dragSvg).on("dblclick.zoom", null);
 
     // listen for resize
@@ -134,7 +128,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       if (window.File && window.FileReader && window.FileList && window.Blob) {
         var uploadFile = this.files[0];
         var filereader = new window.FileReader();
-
+        
         filereader.onload = function(){
           var txtRes = filereader.result;
           // TODO better error handling
@@ -156,16 +150,19 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           }
         };
         filereader.readAsText(uploadFile);
-
+        
       } else {
         alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
       }
 
     });
-
+	d3.select("#calc").on("click", function(){
+		calcGreatTree(thisGraph.nodes,thisGraph.edges);
+    });
+	
     // handle delete graph
-    d3.select("#delete-graph").on("click", function(){
-      thisGraph.deleteGraph(false);
+    d3.select("#delete-graph").on("click", function(){	
+     	thisGraph.deleteGraph(false);
     });
   };
 
@@ -182,7 +179,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
-    nodeRadius: 50
+    nodeRadius: 30
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -236,7 +233,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     }
   };
 
-
+  
   // remove edges associated with a node
   GraphCreator.prototype.spliceLinksForNode = function(node) {
     var thisGraph = this,
@@ -265,7 +262,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     }
     thisGraph.state.selectedNode = nodeData;
   };
-
+  
   GraphCreator.prototype.removeSelectFromNode = function(){
     var thisGraph = this;
     thisGraph.circles.filter(function(cd){
@@ -291,8 +288,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (state.selectedNode){
       thisGraph.removeSelectFromNode();
     }
-
-    var prevEdge = state.selectedEdge;
+    
+    var prevEdge = state.selectedEdge;  
     if (!prevEdge || prevEdge !== d){
       thisGraph.replaceSelectEdge(d3path, d);
     } else{
@@ -361,24 +358,28 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         state = thisGraph.state,
         consts = thisGraph.consts;
     // reset the states
-    state.shiftNodeDrag = false;
+    state.shiftNodeDrag = d3.event.shiftKey;    
     d3node.classed(consts.connectClass, false);
-
+    
     var mouseDownNode = state.mouseDownNode;
-
+    
     if (!mouseDownNode) return;
 
     thisGraph.dragLine.classed("hidden", true);
 
     if (mouseDownNode !== d){
       // we're in a different node: create new edge for mousedown edge and add to graph
+
       var newEdge = {source: mouseDownNode, target: d};
       var filtRes = thisGraph.paths.filter(function(d){
         if (d.source === newEdge.target && d.target === newEdge.source){
-          thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
+		//preveting from both sides directed edges OFF
+        //  thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
         }
+//alert(d.source === newEdge.source);alert(d.target === newEdge.target);
         return d.source === newEdge.source && d.target === newEdge.target;
       });
+
       if (!filtRes[0].length){
         thisGraph.edges.push(newEdge);
         thisGraph.updateGraph();
@@ -400,8 +401,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           if (state.selectedEdge){
             thisGraph.removeSelectFromEdge();
           }
-          var prevNode = state.selectedNode;
-
+          var prevNode = state.selectedNode;            
+          
           if (!prevNode || prevNode.id !== d.id){
             thisGraph.replaceSelectNode(d3node, d);
           } else{
@@ -412,7 +413,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     }
     state.mouseDownNode = null;
     return;
-
+    
   }; // end of circles mouseup
 
   // mousedown on main svg
@@ -427,24 +428,24 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (state.justScaleTransGraph) {
       // dragged not clicked
       state.justScaleTransGraph = false;
-    } else if (state.graphMouseDown && d3.event.shiftKey){
-      // clicked not dragged from svg
-      var xycoords = d3.mouse(thisGraph.svgG.node()),
-          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1]};
-      thisGraph.nodes.push(d);
-      thisGraph.updateGraph();
-      // make title of text immediently editable
-      var d3txt = thisGraph.changeTextOfNode(thisGraph.circles.filter(function(dval){
-        return dval.id === d.id;
-      }), d),
-          txtNode = d3txt.node();
-      thisGraph.selectElementContents(txtNode);
-      txtNode.focus();
     } else if (state.shiftNodeDrag){
       // dragged from node
       state.shiftNodeDrag = false;
       thisGraph.dragLine.classed("hidden", true);
-    }
+    }else if (state.graphMouseDown && d3.event.shiftKey){
+      // clicked not dragged from svg
+      var xycoords = d3.mouse(thisGraph.svgG.node()),
+          d = {id: thisGraph.idct++, title: ''+thisGraph.nodes.length, x: xycoords[0], y: xycoords[1]};
+      thisGraph.nodes.push(d);
+      thisGraph.updateGraph();
+      // make title of text immediently editable
+     // var d3txt = thisGraph.changeTextOfNode(thisGraph.circles.filter(function(dval){
+   //    return dval.id === d.id;
+   //   }), d),
+          txtNode = d3txt.node();
+      thisGraph.selectElementContents(txtNode);
+      txtNode.focus();
+    } 
     state.graphMouseDown = false;
   };
 
@@ -484,11 +485,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
   // call to propagate changes to graph
   GraphCreator.prototype.updateGraph = function(){
-
+    
     var thisGraph = this,
         consts = thisGraph.consts,
         state = thisGraph.state;
-
+    
     thisGraph.paths = thisGraph.paths.data(thisGraph.edges, function(d){
       return String(d.source.id) + "+" + String(d.target.id);
     });
@@ -520,7 +521,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     // remove old links
     paths.exit().remove();
-
+    
     // update existing nodes
     thisGraph.circles = thisGraph.circles.data(thisGraph.nodes, function(d){ return d.id;});
     thisGraph.circles.attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";});
@@ -531,7 +532,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     newGs.classed(consts.circleGClass, true)
       .attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";})
-      .on("mouseover", function(d){
+      .on("mouseover", function(d){        
         if (state.shiftNodeDrag){
           d3.select(this).classed(consts.connectClass, true);
         }
@@ -562,6 +563,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     this.state.justScaleTransGraph = true;
     d3.select("." + this.consts.graphClass)
       .attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
+//alert((d3.event.scale===1) ? 1 : d3.event.scale); 
+
   };
 
   GraphCreator.prototype.updateWindow = function(svg){
@@ -573,33 +576,41 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   };
 
 
-
+  
   /**** MAIN ****/
 
   // warn the user when leaving
+
   window.onbeforeunload = function(){
-    return "Make sure to save your graph locally before leaving :-)";
-  };
+    return "Make sure to save your graph locally before leaving ";
+  };      
 
   var docEl = document.documentElement,
       bodyEl = document.getElementsByTagName('body')[0];
-
+  
   var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
       height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
-
+	
   var xLoc = width/2 - 25,
       yLoc = 100;
 
   // initial node data
-  var nodes = [];
-  var edges = [];
+  var nodes = [{title: "0", id: 0, x: xLoc, y: yLoc},
+               {title: "1", id: 1, x: xLoc, y: yLoc + 200}];
+  var edges = [{source: nodes[1], target: nodes[0]}];
 
 
   /** MAIN SVG **/
-  var svg = d3.select(settings.appendElSpec).append("svg")
+  var svg = d3.select("body").append("svg")
         .attr("width", width)
         .attr("height", height);
   var graph = new GraphCreator(svg, nodes, edges);
       graph.setIdCt(2);
   graph.updateGraph();
+///////////////////////
+
+
+
 })(window.d3, window.saveAs, window.Blob);
+
+

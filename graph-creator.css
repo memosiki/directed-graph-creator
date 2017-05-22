@@ -19,19 +19,34 @@ body{
     user-select: none;
     background-color: rgb(248, 248, 248)
 }
-
+#maintext{
+	position: absolute;
+	bottom: 100;
+    left: 0;
+	margin-top: 1em;
+    margin-left: 1em;
+    margin-right: 60em;
+}
 #toolbox{
     position: absolute;
     bottom: 0;
     left: 0;
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
     margin-left: 1em;
     border: 2px solid #EEEEEE;
     border-radius: 5px;
     padding: 1em;
     z-index: 5;
 }
-
+#calc{
+	text-align: center; 	
+	background:#f7f7f7;
+	border:2px solid #dddddd;
+    border-radius: 5px;
+    padding: 1em;
+}
+#calc:hover { border: 2px solid  #bbbbbb; } 
+#calc:active { background: #EEEEEE; }
 #toolbox input{
     width: 30px;
     opacity: 0.4;
@@ -60,7 +75,7 @@ marker{
 g.conceptG circle{
     fill: #F6FBFF;
     stroke: #333;
-    stroke-width: 2px;
+    stroke-width: 3px;
 }
 
 g.conceptG:hover circle{
@@ -77,7 +92,7 @@ g.selected:hover circle{
 path.link {
     fill: none;
     stroke: #333;
-    stroke-width: 6px;
+    stroke-width: 4px;
     cursor: default;
 }
 
@@ -96,3 +111,4 @@ path.link.hidden{
 path.link.selected {
     stroke: rgb(229, 172, 247);
 }
+
